@@ -5,11 +5,11 @@ const cors = require("cors");
 const helmet = require("helmet");
 const POKEDEX = require("./pokedex.json");
 
-console.log(process.env.API_TOKEN);
-
 const app = express();
 
-app.use(morgan("dev"));
+const morganSetting = process.env.NODE_ENV;
+
+app.use(morgan(morganSetting));
 app.use(helmet());
 app.use(cors());
 
@@ -73,5 +73,16 @@ function handleGetPokemon(req, res) {
 
 app.get("/pokemon", handleGetPokemon);
 
-const PORT = 8000;
+// error handling middleware
+app.use((error, req, res, next) => {
+	let response;
+	if (process.env.NODE_ENV === "production") {
+		response = { error: { message: "server error" } };
+	} else {
+		response = { error };
+	}
+	res.status(500).json(response);
+});
+
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => `Server listening at http://localhost:${PORT}`);
